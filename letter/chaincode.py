@@ -157,5 +157,5 @@ knn.fit(x, y)
 # chain = build_chaincode('training/a-1-0.png')
 # print(chain)
 # print(knn.predict(chain))
-with open('knn.pickle','wb') as handle:
+with open('knn_letter.pickle','wb') as handle:
     pickle.dump(knn, handle)
