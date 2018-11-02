@@ -7,7 +7,7 @@ import pickle
 import glob
 # from flask import Flask
 
-sys.setrecursionlimit(10000)
+sys.setrecursionlimit(500000)
 
 def build_chaincode(image):
     np.set_printoptions(threshold=np.nan)
@@ -16,17 +16,10 @@ def build_chaincode(image):
     w, h = im.size
     #quantize image to 0 and 1 value
     quantitized_image = np.zeros((w + 2, h + 2), dtype=int)
-    # print('  ', end='')
-    # for j in range(h):
-    #     print(j%10, end='')
-    # print()
     for i in range(w):
-        # print(i, end=' ')
-        # if(i < 10):
-            # print(' ', end='')
         for j in range(h):
-            # grayscale = image[i,j]
             rgb_image = image[i, j]
+
             if (len(rgb_image) == 4):
                 if (rgb_image[3] > 0):
                     grayscale = (rgb_image[0] + rgb_image[1] + rgb_image[2]) / 3
@@ -37,9 +30,6 @@ def build_chaincode(image):
 
             if(grayscale < 127):
                 quantitized_image[i + 1, j + 1] = 1
-
-        #     print(quantitized_image[i + 1, j + 1], end='')
-        # print()
     retry =3
     chain_codes = []
     steps = 0
@@ -90,18 +80,6 @@ def build_chaincode(image):
                         chain_code[7] = chain_code[7] + 1
                     else: 
                         retry = retry -1
-                        # quantitized_image[m,n] = 4
-                        # print('  ', end='')
-                        # for r in range(h):
-                        #     print(r%10, end='')
-                        # print()
-                        # for y in range(w):
-                        #     print(y, end=' ')
-                        #     if(y < 10):
-                        #         print(' ', end='')
-                        #     for r in range(h):
-                        #         print(quantitized_image[y + 1, r + 1], end='')
-                        #     print()
                         if(retry == 0):
                             return
                         if(backtrace(quantitized_image, m - 1, n)):
@@ -142,28 +120,17 @@ def build_chaincode(image):
                             break
                 mark_area(quantitized_image, i, j)
                 chain_codes.append(chain_code)
-                # print('  ', end='')
-                # for r in range(h):
-                #     print(r%10, end='')
-                # print()
-                # for y in range(w):
-                #     print(y, end=' ')
-                #     if(y < 10):
-                #         print(' ', end='')
-                #     for r in range(h):
-                #         print(quantitized_image[y + 1, r + 1], end='')
-                #     print()
     return chain_codes
 
 def is_surrounding_black(quantitized_image, m, n):
-    
     return ((quantitized_image[m,n] == 0) and (quantitized_image[m - 1, n] == 1  or quantitized_image[m, n + 1] == 1 or  quantitized_image[m + 1, n] == 1 or quantitized_image[m, n - 1] == 1))
+
 def backtrace(quantitized_image, m, n):
-    
     return ((quantitized_image[m,n] == 2) and (quantitized_image[m - 1, n] == 0  or quantitized_image[m, n + 1] == 0 or  quantitized_image[m + 1, n] == 0 or quantitized_image[m, n - 1] == 0))
 
 def is_finish(quantitized_image, m, n):
     return (quantitized_image[m - 1, n] == 3  or quantitized_image[m, n + 1] == 3 or  quantitized_image[m + 1, n] == 3 or quantitized_image[m, n - 1] == 3 or quantitized_image[m + 1, n-1] == 3  or quantitized_image[m-1, n + 1] == 3 or  quantitized_image[m + 1, n+1] == 3 or quantitized_image[m-1, n - 1] == 3)
+
 def mark_area(quantitized_image, m, n):
     if (quantitized_image[m,n] == 1):
         quantitized_image[m,n] = 5
@@ -181,17 +148,14 @@ x = []
 for i in glob.glob('training/*'):
     chain_code = build_chaincode(i)
     if chain_code is not None:
-        # y.append(i.split('\\')[-1].split('.')[0].split('-')[0])
         y.append(i.split('/')[-1].split('.')[0].split('-')[0])
         x.append(chain_code[0])
 
-# print(x)
-# print(y)
+knn = KNeighborsClassifier(n_neighbors=1,metric='euclidean')
+knn.fit(x, y)
 
-# knn = KNeighborsClassifier(n_neighbors=1,metric='euclidean')
-# knn.fit(x, y)
-
-# chain = build_chaincode('training/2.png')
+# chain = build_chaincode('training/a-1-0.png')
+# print(chain)
 # print(knn.predict(chain))
-# with open('knn.pickle','wb') as handle:
-#     pickle.dump(knn, handle)
+with open('knn.pickle','wb') as handle:
+    pickle.dump(knn, handle)
