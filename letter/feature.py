@@ -281,13 +281,12 @@ for i in glob.glob('training/*'):
     bone = thinning(i)
     array_feature = get_feature_from_bone(bone)
     feature = get_feature_from_array(array_feature)
+    print(feature)
     if feature is not None:
         y.append(i.split('\\')[-1].split('.')[0].split('-')[0])
         temp = []
-        for i in feature:
-            temp.extend(i)
-        print(temp)
-        
+        for i in range(0,5):
+            temp.append(feature[i])
 
 knn = KNeighborsClassifier(n_neighbors=1,metric='euclidean')
 knn.fit(x, y)
